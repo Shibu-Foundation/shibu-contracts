@@ -5,33 +5,43 @@ library IterableMapping {
     // Iterable mapping from address to uint;
     struct Map {
         address[] keys;
-        mapping(address => uint) values;
-        mapping(address => uint) indexOf;
+        mapping(address => uint256) values;
+        mapping(address => uint256) indexOf;
         mapping(address => bool) inserted;
     }
 
-    function get(Map storage map, address key) public view returns (uint) {
+    function get(Map storage map, address key) public view returns (uint256) {
         return map.values[key];
     }
 
-    function getIndexOfKey(Map storage map, address key) public view returns (int) {
-        if(!map.inserted[key]) {
+    function getIndexOfKey(Map storage map, address key)
+        public
+        view
+        returns (int256)
+    {
+        if (!map.inserted[key]) {
             return -1;
         }
-        return int(map.indexOf[key]);
+        return int256(map.indexOf[key]);
     }
 
-    function getKeyAtIndex(Map storage map, uint index) public view returns (address) {
+    function getKeyAtIndex(Map storage map, uint256 index)
+        public
+        view
+        returns (address)
+    {
         return map.keys[index];
     }
 
-
-
-    function size(Map storage map) public view returns (uint) {
+    function size(Map storage map) public view returns (uint256) {
         return map.keys.length;
     }
 
-    function set(Map storage map, address key, uint val) public {
+    function set(
+        Map storage map,
+        address key,
+        uint256 val
+    ) public {
         if (map.inserted[key]) {
             map.values[key] = val;
         } else {
@@ -50,8 +60,8 @@ library IterableMapping {
         delete map.inserted[key];
         delete map.values[key];
 
-        uint index = map.indexOf[key];
-        uint lastIndex = map.keys.length - 1;
+        uint256 index = map.indexOf[key];
+        uint256 lastIndex = map.keys.length - 1;
         address lastKey = map.keys[lastIndex];
 
         map.indexOf[lastKey] = index;

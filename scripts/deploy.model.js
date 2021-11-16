@@ -7,9 +7,9 @@ function DeployModel() {
   this.ccoinswapAutoCompound = null;
 
   this.toJsonFile = function toJsonFile() {
-    fs.writeFileSync( path.join('./', 'config-farm-factory.json'), JSON.stringify({
-      coinswapAutoCompound: self.communityReward.address,
-      }
+    fs.writeFileSync(path.join('./', 'config-farm-factory.json'), JSON.stringify({
+      coinswapAutoCompound: self.Shibu.address,
+    }
     ))
   }
 }
