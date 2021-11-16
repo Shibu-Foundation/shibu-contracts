@@ -12,18 +12,6 @@ async function main() {
 
     console.log("-------------------");
 
-    const ShibuDividendTracker = await ethers.getContractFactory("ShibuDividendTracker", {
-        libraries: {
-            IterableMapping: iterableMappingDeployed.address,
-        },
-    });
-    const shibuDividendTrackerDeployed = await ShibuDividendTracker.deploy();
-    await shibuDividendTrackerDeployed.deployed();
-
-    console.log("ShibuDividendTracker deployed to address: ", shibuDividendTrackerDeployed.address);
-
-    console.log("-------------------");
-
     const shibuContract = await ethers.getContractFactory("Shibu", {
         libraries: {
             IterableMapping: iterableMappingDeployed.address,
@@ -39,16 +27,6 @@ async function main() {
     console.log("Staring verify IterableMapping address: ", iterableMappingDeployed.address);
     hre.run("verify:verify", {
         address: iterableMappingDeployed.address
-    });
-
-    console.log("--------------------");
-    console.log("Staring verify ShibuDividendTracker address: ", shibuDividendTrackerDeployed.address);
-
-    hre.run("verify:verify", {
-        address: shibuDividendTrackerDeployed.address,
-        libraries: {
-            IterableMapping: iterableMappingDeployed.address,
-        }
     });
 
     console.log("--------------------");

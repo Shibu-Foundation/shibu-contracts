@@ -27,7 +27,7 @@ contract Shibu is ERC20, Ownable {
 
     uint256 public autoBoostThreshold = 1 ether; //initially set to 1 BNB
 
-    ShibuDividendTracker public dividendTracker = new ShibuDividendTracker();
+    ShibuDividendTracker public dividendTracker;
 
     uint256 public swapTokensAtAmount = 50000000 * 10**decimals();
     uint256 public maxWalletBalance = 2e13 * 10**decimals(); // 2% of total supply
@@ -97,6 +97,8 @@ contract Shibu is ERC20, Ownable {
     }
 
     constructor() ERC20("SHIBU", "SHIBU") {
+        dividendTracker = new ShibuDividendTracker();
+
         IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap testnet router address
         // Create a Coinswap pair for this new token
         address _pair = IFactory(_router.factory()).createPair(
