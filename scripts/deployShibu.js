@@ -12,6 +12,13 @@ async function main() {
 
     console.log("-------------------");
 
+    console.log("Staring verify IterableMapping address: ", iterableMappingDeployed.address);
+    hre.run("verify:verify", {
+        address: iterableMappingDeployed.address
+    });
+
+    console.log("--------------------");
+
     const shibuContract = await ethers.getContractFactory("Shibu", {
         libraries: {
             IterableMapping: iterableMappingDeployed.address,
@@ -22,12 +29,6 @@ async function main() {
     await shibuContractDeployed.deployed();
 
     console.log("Shibu deployed to address: ", shibuContractDeployed.address);
-
-    console.log("--------------------");
-    console.log("Staring verify IterableMapping address: ", iterableMappingDeployed.address);
-    hre.run("verify:verify", {
-        address: iterableMappingDeployed.address
-    });
 
     console.log("--------------------");
     console.log("Staring verify shibuContract address: ", shibuContractDeployed.address);
