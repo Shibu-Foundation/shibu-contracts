@@ -4,11 +4,11 @@ const fs = require('fs');
 function DeployModel() {
 
   let self = this;
-  this.ccoinswapAutoCompound = null;
+  this.contractShibuAddress = null;
 
   this.toJsonFile = function toJsonFile() {
-    fs.writeFileSync(path.join('./', 'config-farm-factory.json'), JSON.stringify({
-      coinswapAutoCompound: self.Shibu.address,
+    fs.writeFileSync(path.join('./', 'contract-shibu-address.json'), JSON.stringify({
+      contractShibuAddress: self.Shibu.address,
     }
     ))
   }

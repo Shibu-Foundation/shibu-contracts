@@ -4,5 +4,5 @@ node_modules
 cache
 artifacts
 secrets.json
-secrets-testnet.json
 .DS_Store
+contract-shibu-address.json

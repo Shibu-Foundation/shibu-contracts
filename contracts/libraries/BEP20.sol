@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.6;
 
-import "../interfaces/IERC20.sol";
+import "../interfaces/IBEP20.sol";
 import "./Context.sol";
 import "./SafeMath.sol";
 
@@ -30,7 +30,7 @@ import "./SafeMath.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IBEP20-approve}.
  */
-contract ERC20 is Context, IERC20, IERC20Metadata {
+contract BEP20 is Context, IBEP20, IBEP20Metadata {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _balances;
@@ -77,12 +77,12 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
      * be displayed to a user as `5,05` (`505 / 10 ** 2`).
      *
      * Tokens usually opt for a value of 18, imitating the relationship between
-     * Ether and Wei. This is the value {ERC20} uses, unless this function is
+     * BNB and Wei. This is the value {BEP20} uses, unless this function is
      * overridden;
      *
      * NOTE: This information is only used for _display_ purposes: it in
      * no way affects any of the arithmetic of the contract, including
-     * {IERC20-balanceOf} and {IERC20-transfer}.
+     * {IBEP20-balanceOf} and {IBEP20-transfer}.
      */
     function decimals() public view virtual override returns (uint8) {
         return 18;

@@ -8,7 +8,7 @@ import "./libraries/IterableMapping.sol";
 import "./libraries/Ownable.sol";
 import "./interfaces/ICoinswap.sol";
 
-contract Shibu is ERC20, Ownable {
+contract Shibu is BEP20, Ownable {
     using SafeMath for uint256;
 
     IRouter public router;
@@ -99,11 +99,11 @@ contract Shibu is ERC20, Ownable {
         swapping = false;
     }
 
-    constructor() ERC20("TEST", "TEST") {
+    constructor() BEP20("SHIBU", "SHIBU") {
 
         dividendTracker = new ShibuDividendTracker();
 
-        IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap testnet router address
+        IRouter _router = IRouter(0x34DBe8E5faefaBF5018c16822e4d86F02d57Ec27); //Coinswap router
 
         // Create a Coinswap pair for this new token
         address _pair = IFactory(_router.factory()).createPair(
@@ -129,7 +129,7 @@ contract Shibu is ERC20, Ownable {
         excludeFromFees(deadWallet, true);
 
         /*
-            _mint is an internal function in ERC20.sol that is only called here,
+            _mint is an internal function in BEP20.sol that is only called here,
             and CANNOT be called ever again
         */
         _mint(owner(), 1e12 * (10**18));
@@ -403,7 +403,7 @@ contract Shibu is ERC20, Ownable {
     }
 
     function rescueBEP20(address tokenAdd, uint256 amount) external onlyOwner {
-        IERC20(tokenAdd).transfer(msg.sender, amount);
+        IBEP20(tokenAdd).transfer(msg.sender, amount);
     }
 
     function _transfer(
@@ -619,8 +619,8 @@ contract Shibu is ERC20, Ownable {
 
     function swapAndSendDividends(uint256 tokens) private lockTheSwap {
         swapTokensForBUSD(tokens);
-        uint256 dividends = IERC20(BUSD).balanceOf(address(this));
-        bool success = IERC20(BUSD).transfer(
+        uint256 dividends = IBEP20(BUSD).balanceOf(address(this));
+        bool success = IBEP20(BUSD).transfer(
             address(dividendTracker),
             dividends
         );

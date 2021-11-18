@@ -3,9 +3,9 @@
 pragma solidity ^0.8.6;
 
 /**
- * @dev Interface of the ERC20 standard as defined in the EIP.
+ * @dev Interface of the BEP20 standard as defined in the EIP.
  */
-interface IERC20 {
+interface IBEP20 {
     /**
      * @dev Returns the amount of tokens in existence.
      */
@@ -81,11 +81,11 @@ interface IERC20 {
 }
 
 /**
- * @dev Interface for the optional metadata functions from the ERC20 standard.
+ * @dev Interface for the optional metadata functions from the BEP20 standard.
  *
  * _Available since v4.1._
  */
-interface IERC20Metadata is IERC20 {
+interface IBEP20Metadata is IBEP20 {
     /**
      * @dev Returns the name of the token.
      */
