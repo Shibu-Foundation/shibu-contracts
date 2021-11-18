@@ -4,30 +4,31 @@ const hre = require("hardhat");
 async function main() {
     let deployData = new DeployModel()
 
-    // const IterableMapping = await ethers.getContractFactory("IterableMapping");
-    // const iterableMappingDeployed = await IterableMapping.deploy();
-    // await iterableMappingDeployed.deployed();
-    //
-    // console.log("IterableMapping deployed to address: ", iterableMappingDeployed.address);
-    //
-    // console.log(" ------------------- ");
-    //
-    // const shibuDividendTracker = await ethers.getContractFactory("ShibuDividendTracker", {
-    //     libraries: {
-    //         IterableMapping: iterableMappingDeployed.address,
-    //     },
-    // });
-    //
+    const IterableMapping = await ethers.getContractFactory("IterableMapping");
+    const iterableMappingDeployed = await IterableMapping.deploy();
+    await iterableMappingDeployed.deployed();
+
+    console.log("IterableMapping deployed to address: ", iterableMappingDeployed.address);
+
+    console.log(" ------------------- ");
+
+    const shibuDividendTracker = await ethers.getContractFactory("ShibuDividendTracker", {
+        libraries: {
+            IterableMapping: iterableMappingDeployed.address,
+        },
+    });
+
     // const shibuDividendTrackerDeployed = await shibuDividendTracker.deploy();
     // await shibuDividendTrackerDeployed.deployed();
     //
     // console.log("ShibuDividendTracker deployed to address: ", shibuDividendTrackerDeployed.address);
-
+    //
     // console.log(" -------------------- ");
     //
+
     const shibuContract = await ethers.getContractFactory("Shibu", {
         libraries: {
-            // IterableMapping: iterableMappingDeployed.address,
+            IterableMapping: iterableMappingDeployed.address,
         },
     });
 
