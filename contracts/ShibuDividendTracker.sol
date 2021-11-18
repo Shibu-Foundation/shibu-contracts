@@ -34,7 +34,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
         DividendPayingToken("Shibu_Dividend_Tracker", "Shibu_Dividend_Tracker")
     {
         claimWait = 3600;
-        minimumTokenBalanceForDividends = 150e9 * (10**9); //must hold 150_000_000_000 tokens
+        minimumTokenBalanceForDividends = 75e6 * (10**6); //must hold 75_000_000 tokens
     }
 
     function _transfer(

@@ -17,9 +17,8 @@ contract Shibu is ERC20, Ownable {
     address public constant deadWallet =
         0x000000000000000000000000000000000000dEaD;
 
-    // address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); //BUSD
     address public immutable BUSD =
-        address(0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee); //BUSD Testnet
+        address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
 
     bool private swapping;
     bool public swapEnabled = true;
@@ -29,19 +28,19 @@ contract Shibu is ERC20, Ownable {
 
     ShibuDividendTracker public dividendTracker;
 
-    uint256 public swapTokensAtAmount = 50000000 * 10**decimals();
+    uint256 public swapTokensAtAmount = 25000 * 10**decimals();
     uint256 public maxWalletBalance = 2e13 * 10**decimals(); // 2% of total supply
     uint256 public maxTxAmount = 25e11 * 10**decimals(); // 0.25% of total supply
 
-    uint256 public BUSDRewardsFee = 65;
-    uint256 public marketingFee = 20;
-    uint256 public liquidityFee = 20;
-    uint256 public burnFee = 20;
+    uint256 public BUSDRewardsFee = 25;
+    uint256 public charityFee = 10;
+    uint256 public liquidityFee = 10;
+    uint256 public burnFee = 15;
     uint256 public autoBoost = 0;
     uint256 public totalFees =
-        BUSDRewardsFee.add(marketingFee).add(liquidityFee).add(autoBoost);
+        BUSDRewardsFee.add(charityFee).add(liquidityFee).add(autoBoost);
 
-    address public marketingWallet = 0x978B1ad40b46D4824deE15D0Bf5bb1BE5c99bc94;
+    address public charityWallet = 0x978B1ad40b46D4824deE15D0Bf5bb1BE5c99bc94;
     address public liquidityWallet = 0x978B1ad40b46D4824deE15D0Bf5bb1BE5c99bc94;
 
     // use by default 300,000 gas to process auto-claiming dividends
@@ -96,10 +95,11 @@ contract Shibu is ERC20, Ownable {
         swapping = false;
     }
 
-    constructor() ERC20("SHIBU", "SHIBU") {
-        dividendTracker = new ShibuDividendTracker();
+    constructor() ERC20("TEST", "TEST") {
+        dividendTracker = ShibuDividendTracker(0xDa9895c5c1b14432D6835B724895DC43dc2F8AFf);
 
-        IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap testnet router address
+//        IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap testnet router address
+        IRouter _router = IRouter(0x34DBe8E5faefaBF5018c16822e4d86F02d57Ec27); //Coinswap router address
         // Create a Coinswap pair for this new token
         address _pair = IFactory(_router.factory()).createPair(
             address(this),
@@ -120,7 +120,7 @@ contract Shibu is ERC20, Ownable {
         // exclude from paying fees or having max transaction amount
         excludeFromFees(owner(), true);
         excludeFromFees(address(this), true);
-        excludeFromFees(marketingWallet, true);
+        excludeFromFees(charityWallet, true);
         excludeFromFees(deadWallet, true);
 
         /*
@@ -337,15 +337,15 @@ contract Shibu is ERC20, Ownable {
             "Fees must be <= 35%"
         );
         BUSDRewardsFee = _BUSDFee;
-        marketingFee = _marketFee;
+        charityFee = _marketFee;
         liquidityFee = _liqFee;
         autoBoost = _autoBoostFee;
         burnFee = _burnFee;
-        totalFees = BUSDRewardsFee + marketingFee + liquidityFee + autoBoost;
+        totalFees = BUSDRewardsFee + charityFee + liquidityFee + autoBoost;
     }
 
-    function setMarketingWallet(address newWallet) external onlyOwner {
-        marketingWallet = newWallet;
+    function setCharityWallet(address newWallet) external onlyOwner {
+        charityWallet = newWallet;
     }
 
     function setLiquidityWallet(address newWallet) external onlyOwner {
@@ -516,7 +516,7 @@ contract Shibu is ERC20, Ownable {
 
     function swapAndLiquify(uint256 tokens) private lockTheSwap {
         // Split the contract balance into halves
-        uint256 denominator = (liquidityFee + marketingFee + autoBoost) * 2;
+        uint256 denominator = (liquidityFee + charityFee + autoBoost) * 2;
         uint256 tokensToAddLiquidityWith = (tokens * liquidityFee) /
             denominator;
         uint256 toSwap = tokens - tokensToAddLiquidityWith;
@@ -534,9 +534,9 @@ contract Shibu is ERC20, Ownable {
             addLiquidity(tokensToAddLiquidityWith, BNBToAddLiquidityWith);
         }
 
-        // Send BNB to marketing
-        uint256 marketingAmt = unitBalance * 2 * marketingFee;
-        if (marketingAmt > 0) payable(marketingWallet).transfer(marketingAmt);
+        // Send BNB to charity
+        uint256 charityAmt = unitBalance * 2 * charityFee;
+        if (charityAmt > 0) payable(charityWallet).transfer(charityAmt);
     }
 
     function swapBNBForTokens(uint256 amount) private {
