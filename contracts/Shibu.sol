@@ -103,7 +103,7 @@ contract Shibu is BEP20, Ownable {
 
         dividendTracker = new ShibuDividendTracker();
 
-        IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap router
+        IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap testnet router
 
         // Create a Coinswap pair for this new token
         address _pair = IFactory(_router.factory()).createPair(
