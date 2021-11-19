@@ -18,7 +18,7 @@ contract Shibu is BEP20, Ownable {
         0x000000000000000000000000000000000000dEaD;
 
     address public immutable BUSD =
-        address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
+        address(0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee); //BUSD testnet
 
     bool private swapping;
     bool public swapEnabled = true;
@@ -103,7 +103,7 @@ contract Shibu is BEP20, Ownable {
 
         dividendTracker = new ShibuDividendTracker();
 
-        IRouter _router = IRouter(0x34DBe8E5faefaBF5018c16822e4d86F02d57Ec27); //Coinswap router
+        IRouter _router = IRouter(0x8D0c01c0D07B1Df2c149d67269a068773bbD85b8); //Coinswap router
 
         // Create a Coinswap pair for this new token
         address _pair = IFactory(_router.factory()).createPair(
