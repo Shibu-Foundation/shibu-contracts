@@ -21,7 +21,7 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     using SafeMathInt for int256;
 
      address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); //BUSD
-//    address public immutable BUSD = address(0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee); //BUSD Testnet
+     
 
     // With `magnitude`, we can properly distribute dividends even if the amount of received BNB is small.
     // For more discussion about choosing the value of `magnitude`,
