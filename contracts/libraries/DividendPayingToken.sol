@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.6;
 
-import "./ERC20.sol";
+import "./BEP20.sol";
 import "./SafeMath.sol";
 import "./SafeMathUint.sol";
 import "./SafeMathInt.sol";
@@ -15,7 +15,7 @@ import "./Ownable.sol";
 /// @dev A mintable BEP20 token that allows anyone to pay and distribute bnb
 ///  to token holders as dividends and allows token holders to withdraw their dividends.
 ///  Reference: the source code of PoWH3D: https://etherscan.io/address/0xB3775fB83F7D12A36E0475aBdD1FCA35c091efBe#code
-contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, DividendPayingTokenOptionalInterface {
+contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, DividendPayingTokenOptionalInterface {
     using SafeMath for uint256;
     using SafeMathUint for uint256;
     using SafeMathInt for int256;
@@ -23,7 +23,7 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
      address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); //BUSD
 //    address public immutable BUSD = address(0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee); //BUSD Testnet
 
-    // With `magnitude`, we can properly distribute dividends even if the amount of received ether is small.
+    // With `magnitude`, we can properly distribute dividends even if the amount of received BNB is small.
     // For more discussion about choosing the value of `magnitude`,
     //  see https://github.com/ethereum/EIPs/issues/1726#issuecomment-472352728
     uint256 constant internal magnitude = 2**128;
@@ -46,7 +46,7 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
 
     uint256 public totalDividendsDistributed;
 
-    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol) BEP20(_name, _symbol) {
 
     }
 
@@ -64,20 +64,20 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
         }
     }
 
-    /// @notice Withdraws the ether distributed to the sender.
-    /// @dev It emits a `DividendWithdrawn` event if the amount of withdrawn ether is greater than 0.
+    /// @notice Withdraws the BNB distributed to the sender.
+    /// @dev It emits a `DividendWithdrawn` event if the amount of withdrawn BNB is greater than 0.
     function withdrawDividend() public virtual override {
         _withdrawDividendOfUser(payable(msg.sender));
     }
 
-    /// @notice Withdraws the ether distributed to the sender.
-    /// @dev It emits a `DividendWithdrawn` event if the amount of withdrawn ether is greater than 0.
+    /// @notice Withdraws the BNB distributed to the sender.
+    /// @dev It emits a `DividendWithdrawn` event if the amount of withdrawn BNB is greater than 0.
     function _withdrawDividendOfUser(address payable user) internal returns (uint256) {
         uint256 _withdrawableDividend = withdrawableDividendOf(user);
         if (_withdrawableDividend > 0) {
             withdrawnDividends[user] = withdrawnDividends[user].add(_withdrawableDividend);
             emit DividendWithdrawn(user, _withdrawableDividend);
-            bool success = IERC20(BUSD).transfer(user, _withdrawableDividend);
+            bool success = IBEP20(BUSD).transfer(user, _withdrawableDividend);
 
             if(!success) {
                 withdrawnDividends[user] = withdrawnDividends[user].sub(_withdrawableDividend);
