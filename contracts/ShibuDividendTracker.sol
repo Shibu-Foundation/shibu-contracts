@@ -26,17 +26,17 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
 
     event Claim(address indexed account, uint256 amount, bool indexed automatic);
 
-    constructor()  DividendPayingToken("Shibu_Dividend_Tracker", "Shibu_Dividend_Tracker") {
+    constructor()  DividendPayingToken("ShibuDividendTracker", "SDT") {
         claimWait = 3600;
         minimumTokenBalanceForDividends = 75e6 * (10**18); //must hold 75_000_000 tokens
     }
 
     function _transfer(address, address, uint256) internal pure override{
-        require(false, "Shibu_Dividend_Tracker: No transfers allowed");
+        require(false, "ShibuDividendTracker: No transfers allowed");
     }
 
     function withdrawDividend() public pure override {
-        require(false, "Shibu_Dividend_Tracker: withdrawDividend disabled. Use the 'claim' function on the main Shibu contract.");
+        require(false, "ShibuDividendTracker: withdrawDividend disabled. Use the 'claim' function on the main Shibu contract.");
     }
 
     function excludeFromDividends(address account, bool value) external onlyOwner {
@@ -53,8 +53,8 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
     }
 
     function updateClaimWait(uint256 newClaimWait) external onlyOwner {
-        require(newClaimWait >= 3600 && newClaimWait <= 86400, "Shibu_Dividend_Tracker: claimWait must be updated to between 1 and 24 hours");
-        require(newClaimWait != claimWait, "Shibu_Dividend_Tracker: Cannot update claimWait to same value");
+        require(newClaimWait >= 3600 && newClaimWait <= 86400, "ShibuDividendTracker: claimWait must be updated to between 1 and 24 hours");
+        require(newClaimWait != claimWait, "ShibuDividendTracker: Cannot update claimWait to same value");
         emit ClaimWaitUpdated(newClaimWait, claimWait);
         claimWait = newClaimWait;
     }
