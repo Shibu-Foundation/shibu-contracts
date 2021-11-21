@@ -331,7 +331,7 @@ contract Shibu is BEP20, Ownable {
         uint256 _burnFee
     ) external onlyOwner {
         require(
-            _BUSDFee + _marketFee + _liqFee + _autoBoostFee <= 35,
+            _BUSDFee + _marketFee + _liqFee + _autoBoostFee <= 350,
             "Fees must be <= 35%"
         );
         BUSDRewardsFee = _BUSDFee;
