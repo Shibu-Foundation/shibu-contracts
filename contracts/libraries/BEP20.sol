@@ -84,8 +84,10 @@ contract BEP20 is Context, IBEP20, IBEP20Metadata {
      * no way affects any of the arithmetic of the contract, including
      * {IBEP20-balanceOf} and {IBEP20-transfer}.
      */
+
+     //Shibu token value of {decimals} is 9 
     function decimals() public view virtual override returns (uint8) {
-        return 18;
+        return 9;
     }
 
     /**

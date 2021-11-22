@@ -6,8 +6,8 @@ import "./BEP20.sol";
 import "./SafeMath.sol";
 import "./SafeMathUint.sol";
 import "./SafeMathInt.sol";
-import "./DividendPayingTokenInterface.sol";
-import "./DividendPayingTokenOptionalInterface.sol";
+import "../interfaces/DividendPayingTokenInterface.sol";
+import "../interfaces/DividendPayingTokenOptionalInterface.sol";
 import "./Ownable.sol";
 
 

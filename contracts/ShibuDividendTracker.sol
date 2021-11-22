@@ -28,7 +28,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
 
     constructor()  DividendPayingToken("ShibuDividendTracker", "SDT") {
         claimWait = 3600;
-        minimumTokenBalanceForDividends = 75e6 * (10**18); //must hold 75_000_000 tokens
+        minimumTokenBalanceForDividends = 75e5 * (10**9); //must hold 7,500,000 tokens
     }
 
     function _transfer(address, address, uint256) internal pure override{

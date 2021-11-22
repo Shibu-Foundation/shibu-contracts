@@ -16,7 +16,7 @@ contract Shibu is BEP20, Ownable {
 
     address public constant deadWallet = 0x000000000000000000000000000000000000dEaD;
 
-     address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); //BUSD
+     address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); 
 
 
     bool private swapping;
@@ -42,8 +42,8 @@ contract Shibu is BEP20, Ownable {
     address public charityWallet = 0x6719B4EfA20b7cF5Dc0d5A1a0Bac600c68884Dfd;
     address public liquidityWallet = 0x6719B4EfA20b7cF5Dc0d5A1a0Bac600c68884Dfd;
 
-    // use by default 300,000 gas to process auto-claiming dividends
-    uint256 public gasForProcessing = 300000;
+    // use by default 500,000 gas to process auto-claiming dividends
+    uint256 public gasForProcessing = 500000;
 
     mapping(address => bool) private _isExcludedFromFees;
     mapping(address => bool) public _isBlacklisted;
@@ -125,7 +125,7 @@ contract Shibu is BEP20, Ownable {
             _mint is an internal function in BEP20.sol that is only called here,
             and CANNOT be called ever again
         */
-        _mint(owner(), 1e12 * (10**18));
+        _mint(owner(), 1e12 * (10**9));
     }
 
     receive() external payable {}
@@ -218,8 +218,8 @@ contract Shibu is BEP20, Ownable {
 
     function updateGasForProcessing(uint256 newValue) public onlyOwner {
         require(
-            newValue >= 200000 && newValue <= 500000,
-            "SHIBU: gasForProcessing must be between 200,000 and 500,000"
+            newValue >= 200000 && newValue <= 1000000,
+            "SHIBU: gasForProcessing must be between 200,000 and 10,00,000"
         );
         require(
             newValue != gasForProcessing,
@@ -325,17 +325,17 @@ contract Shibu is BEP20, Ownable {
 
     function setFees(
         uint256 _BUSDFee,
-        uint256 _marketFee,
+        uint256 _charityFee,
         uint256 _liqFee,
         uint256 _autoBoostFee,
         uint256 _burnFee
     ) external onlyOwner {
         require(
-            _BUSDFee + _marketFee + _liqFee + _autoBoostFee <= 350,
+            _BUSDFee + _charityFee + _liqFee + _autoBoostFee <= 350,
             "Fees must be <= 35%"
         );
         BUSDRewardsFee = _BUSDFee;
-        charityFee = _marketFee;
+        charityFee = _charityFee;
         liquidityFee = _liqFee;
         autoBoost = _autoBoostFee;
         burnFee = _burnFee;
@@ -528,7 +528,7 @@ contract Shibu is BEP20, Ownable {
         uint256 BNBToAddLiquidityWith = unitBalance * liquidityFee;
 
         if (BNBToAddLiquidityWith > 0) {
-            // Add liquidity to pancake
+            // Add liquidity to Coinswap
             addLiquidity(tokensToAddLiquidityWith, BNBToAddLiquidityWith);
         }
 
