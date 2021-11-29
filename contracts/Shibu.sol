@@ -3,21 +3,18 @@
 pragma solidity ^0.8.6;
 
 import "./libraries/DividendPayingToken.sol";
-import "./libraries/SafeMath.sol";
 import "./libraries/Ownable.sol";
 import "./interfaces/ICoinswap.sol";
 import "./ShibuDividendTracker.sol";
 
 contract Shibu is BEP20, Ownable {
-    using SafeMath for uint256;
 
     IRouter public router;
     address public pair;
 
     address public constant deadWallet = 0x000000000000000000000000000000000000dEaD;
 
-     address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); 
-
+    address constant public BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
 
     bool private swapping;
     bool public swapEnabled = true;
@@ -36,8 +33,7 @@ contract Shibu is BEP20, Ownable {
     uint256 public liquidityFee = 10;
     uint256 public burnFee = 15;
     uint256 public autoBoost = 0;
-    uint256 public totalFees =
-    BUSDRewardsFee.add(charityFee).add(liquidityFee).add(autoBoost);
+    uint256 public totalFees = BUSDRewardsFee + charityFee + liquidityFee + autoBoost;
 
     address public charityWallet = 0x6719B4EfA20b7cF5Dc0d5A1a0Bac600c68884Dfd;
     address public liquidityWallet = 0x6719B4EfA20b7cF5Dc0d5A1a0Bac600c68884Dfd;
@@ -56,13 +52,23 @@ contract Shibu is BEP20, Ownable {
         address indexed newAddress,
         address indexed oldAddress
     );
-
-    event Updaterouter(address indexed newAddress, address indexed oldAddress);
-
+    event UpdateRouter(address indexed newAddress, address indexed oldAddress);
     event ExcludeFromFees(address indexed account, bool isExcluded);
+    event BlackListAccountAdded(address indexed account, bool isExcluded);
     event ExcludeMultipleAccountsFromFees(address[] accounts, bool isExcluded);
-
     event SetAutomatedMarketMakerPair(address indexed pair, bool indexed value);
+    event BUSDRewardsFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event CharityFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event LiquidityFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event AutoBoostFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event BurnFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event SwapTokensAtAmountUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event MaxWalletBalanceUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event MaxTxAmountUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event AutoBoostThresholdUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event SwapEnabledUpdated(bool newValue, bool oldValue);
+    event AutoBoostEnabledUpdated(bool newValue, bool oldValue);
+    event MinBalanceForRewardsUpdated(uint256 indexed newValue, uint256 indexed oldValue);
 
     event GasForProcessingUpdated(
         uint256 indexed newValue,
@@ -130,7 +136,7 @@ contract Shibu is BEP20, Ownable {
 
     receive() external payable {}
 
-    function updateDividendTracker(address newAddress) public onlyOwner {
+    function updateDividendTracker(address newAddress) external onlyOwner {
         require(
             newAddress != address(dividendTracker),
             "SHIBU: The dividend tracker already has that address"
@@ -158,12 +164,12 @@ contract Shibu is BEP20, Ownable {
         dividendTracker = newDividendTracker;
     }
 
-    function updateRouter(address newAddress) public onlyOwner {
+    function updateRouter(address newAddress) external onlyOwner {
         require(
             newAddress != address(router),
             "SHIBU: The router already has that address"
         );
-        emit Updaterouter(newAddress, address(router));
+        emit UpdateRouter(newAddress, address(router));
         router = IRouter(newAddress);
     }
 
@@ -180,7 +186,7 @@ contract Shibu is BEP20, Ownable {
     function excludeMultipleAccountsFromFees(
         address[] calldata accounts,
         bool excluded
-    ) public onlyOwner {
+    ) external onlyOwner {
         for (uint256 i = 0; i < accounts.length; i++) {
             _isExcludedFromFees[accounts[i]] = excluded;
         }
@@ -189,7 +195,7 @@ contract Shibu is BEP20, Ownable {
     }
 
     function setAutomatedMarketMakerPair(address newPair, bool value)
-    public
+    external
     onlyOwner
     {
         _setAutomatedMarketMakerPair(newPair, value);
@@ -216,7 +222,7 @@ contract Shibu is BEP20, Ownable {
         emit SetAutomatedMarketMakerPair(newPair, value);
     }
 
-    function updateGasForProcessing(uint256 newValue) public onlyOwner {
+    function updateGasForProcessing(uint256 newValue) external onlyOwner {
         require(
             newValue >= 200000 && newValue <= 1000000,
             "SHIBU: gasForProcessing must be between 200,000 and 10,00,000"
@@ -241,7 +247,7 @@ contract Shibu is BEP20, Ownable {
         return dividendTracker.totalDividendsDistributed();
     }
 
-    function isExcludedFromFees(address account) public view returns (bool) {
+    function isExcludedFromFees(address account) external view returns (bool) {
         return _isExcludedFromFees[account];
     }
 
@@ -254,7 +260,7 @@ contract Shibu is BEP20, Ownable {
     }
 
     function dividendTokenBalanceOf(address account)
-    public
+    external
     view
     returns (uint256)
     {
@@ -334,11 +340,21 @@ contract Shibu is BEP20, Ownable {
             _BUSDFee + _charityFee + _liqFee + _autoBoostFee <= 350,
             "Fees must be <= 35%"
         );
+        emit BUSDRewardsFeeUpdated(_BUSDFee, BUSDRewardsFee);
         BUSDRewardsFee = _BUSDFee;
+
+        emit CharityFeeUpdated(_charityFee, charityFee);
         charityFee = _charityFee;
+
+        emit LiquidityFeeUpdated(_liqFee, liquidityFee);
         liquidityFee = _liqFee;
+
+        emit AutoBoostFeeUpdated(_autoBoostFee, autoBoost);
         autoBoost = _autoBoostFee;
+
+        emit BurnFeeUpdated(_burnFee, burnFee);
         burnFee = _burnFee;
+
         totalFees = BUSDRewardsFee + charityFee + liquidityFee + autoBoost;
     }
 
@@ -351,15 +367,27 @@ contract Shibu is BEP20, Ownable {
     }
 
     function setSwapTokensAtAmount(uint256 amount) external onlyOwner {
-        swapTokensAtAmount = amount * 10**decimals();
+        uint256 newValue = amount * 10**decimals();
+
+        emit SwapTokensAtAmountUpdated(newValue, swapTokensAtAmount);
+
+        swapTokensAtAmount = newValue;
     }
 
     function setMaxWalletBalance(uint256 amount) external onlyOwner {
-        maxWalletBalance = amount * 10**decimals();
+        uint256 newValue = amount * 10**decimals();
+
+        emit MaxWalletBalanceUpdated(newValue, maxWalletBalance);
+
+        maxWalletBalance = newValue;
     }
 
     function setMinTokensToGetrewards(uint256 amount) external onlyOwner {
-        dividendTracker.setMinimumBalanceForRewards(amount * 10**decimals());
+        uint256 newValue = amount * 10**decimals();
+        uint256 oldValue = dividendTracker.minimumTokenBalanceForDividends();
+
+        emit MinBalanceForRewardsUpdated(newValue, oldValue);
+        dividendTracker.setMinimumBalanceForRewards(newValue);
     }
 
     function setBlacklistAccount(address account, bool state)
@@ -367,24 +395,35 @@ contract Shibu is BEP20, Ownable {
     onlyOwner
     {
         require(_isBlacklisted[account] != state, "Value already set");
+        emit BlackListAccountAdded(account, state);
+
         _isBlacklisted[account] = state;
     }
 
     function setMaxTxAmount(uint256 amount) external onlyOwner {
         require(amount > 200_000 * 10**decimals(), "Amount must be > 200M");
-        maxTxAmount = amount * 10**decimals();
+
+        uint256 newValue = amount * 10**decimals();
+
+        emit MaxTxAmountUpdated(newValue, maxTxAmount);
+
+        maxTxAmount = newValue;
     }
 
     function setSwapEnabled(bool value) external onlyOwner {
+        emit SwapEnabledUpdated(value, swapEnabled);
         swapEnabled = value;
     }
 
     function setAutoBoostEnabled(bool value) external onlyOwner {
+        emit AutoBoostEnabledUpdated(value, autoBoostEnabled);
         autoBoostEnabled = value;
     }
 
     function setAutoBoostThreshold(uint256 amount) external onlyOwner {
-        autoBoostThreshold = amount * 10**18;
+        uint256 newValue = amount * 10**18;
+        emit AutoBoostThresholdUpdated(newValue, autoBoostThreshold);
+        autoBoostThreshold = newValue;
     }
 
     function rescueBNB(uint256 weiAmount) external onlyOwner {
@@ -415,7 +454,7 @@ contract Shibu is BEP20, Ownable {
         to != deadWallet
         ) {
             require(
-                balanceOf(to).add(amount) <= maxWalletBalance,
+                (balanceOf(to) + amount) <= maxWalletBalance,
                 "Balance is exceeding maxWalletBalance"
             );
         }
@@ -450,15 +489,12 @@ contract Shibu is BEP20, Ownable {
 
             if (canSwap) {
                 swapAndLiquify(
-                    swapTokensAtAmount.mul(totalFees - BUSDRewardsFee).div(
-                        totalFees
-                    )
+                    (swapTokensAtAmount * (totalFees - BUSDRewardsFee)) / totalFees
                 );
 
                 if (BUSDRewardsFee > 0) {
-                    uint256 sellTokens = swapTokensAtAmount
-                    .mul(BUSDRewardsFee)
-                    .div(totalFees);
+
+                    uint256 sellTokens = (swapTokensAtAmount * BUSDRewardsFee) / totalFees;
                     swapAndSendDividends(sellTokens);
                 }
             }
@@ -475,7 +511,7 @@ contract Shibu is BEP20, Ownable {
             uint256 fees = (amount * totalFees) / 1000;
             uint256 burnAmt = (amount * burnFee) / 1000;
 
-            amount = amount.sub(fees).sub(burnAmt);
+            amount = amount - fees - burnAmt;
             super._transfer(from, address(this), fees);
             super._transfer(from, deadWallet, burnAmt);
         }
@@ -550,7 +586,7 @@ contract Shibu is BEP20, Ownable {
             0, // accept any amount of Tokens
             path,
             deadWallet, // Burn address
-            block.timestamp.add(300)
+            (block.timestamp + 300)
         );
 
         emit SwapBNBForTokens(amount, path);
