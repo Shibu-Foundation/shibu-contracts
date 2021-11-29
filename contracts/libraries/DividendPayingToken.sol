@@ -3,24 +3,17 @@
 pragma solidity ^0.8.6;
 
 import "./BEP20.sol";
-import "./SafeMath.sol";
-import "./SafeMathUint.sol";
-import "./SafeMathInt.sol";
 import "../interfaces/DividendPayingTokenInterface.sol";
 import "../interfaces/DividendPayingTokenOptionalInterface.sol";
 import "./Ownable.sol";
-
 
 /// @title Dividend-Paying Token
 /// @dev A mintable BEP20 token that allows anyone to pay and distribute bnb
 ///  to token holders as dividends and allows token holders to withdraw their dividends.
 ///  Reference: the source code of PoWH3D: https://etherscan.io/address/0xB3775fB83F7D12A36E0475aBdD1FCA35c091efBe#code
 contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, DividendPayingTokenOptionalInterface {
-    using SafeMath for uint256;
-    using SafeMathUint for uint256;
-    using SafeMathInt for int256;
 
-     address public immutable BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); //BUSD
+    address constant public BUSD = address(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56); //BUSD
      
 
     // With `magnitude`, we can properly distribute dividends even if the amount of received BNB is small.
@@ -51,16 +44,16 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     }
 
 
-    function distributeBUSDDividends(uint256 amount) public onlyOwner{
+    function distributeBUSDDividends(uint256 amount) external onlyOwner{
         require(totalSupply() > 0);
 
         if (amount > 0) {
-            magnifiedDividendPerShare = magnifiedDividendPerShare.add(
-                (amount).mul(magnitude) / totalSupply()
+            magnifiedDividendPerShare = magnifiedDividendPerShare + (
+                (amount * magnitude) / totalSupply()
             );
             emit DividendsDistributed(msg.sender, amount);
 
-            totalDividendsDistributed = totalDividendsDistributed.add(amount);
+            totalDividendsDistributed = totalDividendsDistributed + amount;
         }
     }
 
@@ -75,12 +68,12 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     function _withdrawDividendOfUser(address payable user) internal returns (uint256) {
         uint256 _withdrawableDividend = withdrawableDividendOf(user);
         if (_withdrawableDividend > 0) {
-            withdrawnDividends[user] = withdrawnDividends[user].add(_withdrawableDividend);
+            withdrawnDividends[user] = withdrawnDividends[user] + _withdrawableDividend;
             emit DividendWithdrawn(user, _withdrawableDividend);
             bool success = IBEP20(BUSD).transfer(user, _withdrawableDividend);
 
             if(!success) {
-                withdrawnDividends[user] = withdrawnDividends[user].sub(_withdrawableDividend);
+                withdrawnDividends[user] = withdrawnDividends[user] - _withdrawableDividend;
                 return 0;
             }
 
@@ -94,7 +87,7 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     /// @notice View the amount of dividend in wei that an address can withdraw.
     /// @param _owner The address of a token holder.
     /// @return The amount of dividend in wei that `_owner` can withdraw.
-    function dividendOf(address _owner) public view override returns(uint256) {
+    function dividendOf(address _owner) external view override returns(uint256) {
         return withdrawableDividendOf(_owner);
     }
 
@@ -102,13 +95,13 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     /// @param _owner The address of a token holder.
     /// @return The amount of dividend in wei that `_owner` can withdraw.
     function withdrawableDividendOf(address _owner) public view override returns(uint256) {
-        return accumulativeDividendOf(_owner).sub(withdrawnDividends[_owner]);
+        return accumulativeDividendOf(_owner) - withdrawnDividends[_owner];
     }
 
     /// @notice View the amount of dividend in wei that an address has withdrawn.
     /// @param _owner The address of a token holder.
     /// @return The amount of dividend in wei that `_owner` has withdrawn.
-    function withdrawnDividendOf(address _owner) public view override returns(uint256) {
+    function withdrawnDividendOf(address _owner) external view override returns(uint256) {
         return withdrawnDividends[_owner];
     }
 
@@ -119,8 +112,8 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     /// @param _owner The address of a token holder.
     /// @return The amount of dividend in wei that `_owner` has earned in total.
     function accumulativeDividendOf(address _owner) public view override returns(uint256) {
-        return magnifiedDividendPerShare.mul(balanceOf(_owner)).toInt256Safe()
-        .add(magnifiedDividendCorrections[_owner]).toUint256Safe() / magnitude;
+        uint256 value = uint256(int256((magnifiedDividendPerShare * balanceOf(_owner))) + magnifiedDividendCorrections[_owner]);
+        return value / magnitude;
     }
 
     /// @dev Internal function that transfer tokens from one address to another.
@@ -131,9 +124,9 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     function _transfer(address from, address to, uint256 value) internal virtual override {
         require(false);
 
-        int256 _magCorrection = magnifiedDividendPerShare.mul(value).toInt256Safe();
-        magnifiedDividendCorrections[from] = magnifiedDividendCorrections[from].add(_magCorrection);
-        magnifiedDividendCorrections[to] = magnifiedDividendCorrections[to].sub(_magCorrection);
+        int256 _magCorrection = int256(magnifiedDividendPerShare * value);
+        magnifiedDividendCorrections[from] = magnifiedDividendCorrections[from] + (_magCorrection);
+        magnifiedDividendCorrections[to] = magnifiedDividendCorrections[to] - (_magCorrection);
     }
 
     /// @dev Internal function that mints tokens to an account.
@@ -143,8 +136,7 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     function _mint(address account, uint256 value) internal override {
         super._mint(account, value);
 
-        magnifiedDividendCorrections[account] = magnifiedDividendCorrections[account]
-        .sub( (magnifiedDividendPerShare.mul(value)).toInt256Safe() );
+        magnifiedDividendCorrections[account] = magnifiedDividendCorrections[account] - int256(magnifiedDividendPerShare * value);
     }
 
     /// @dev Internal function that burns an amount of the token of a given account.
@@ -154,18 +146,17 @@ contract DividendPayingToken is BEP20, Ownable, DividendPayingTokenInterface, Di
     function _burn(address account, uint256 value) internal override {
         super._burn(account, value);
 
-        magnifiedDividendCorrections[account] = magnifiedDividendCorrections[account]
-        .add( (magnifiedDividendPerShare.mul(value)).toInt256Safe() );
+        magnifiedDividendCorrections[account] = magnifiedDividendCorrections[account] + int256(magnifiedDividendPerShare * value);
     }
 
     function _setBalance(address account, uint256 newBalance) internal {
         uint256 currentBalance = balanceOf(account);
 
         if(newBalance > currentBalance) {
-            uint256 mintAmount = newBalance.sub(currentBalance);
+            uint256 mintAmount = newBalance - currentBalance;
             _mint(account, mintAmount);
         } else if(newBalance < currentBalance) {
-            uint256 burnAmount = currentBalance.sub(newBalance);
+            uint256 burnAmount = currentBalance - newBalance;
             _burn(account, burnAmount);
         }
     }

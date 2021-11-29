@@ -7,8 +7,6 @@ import "./libraries/DividendPayingToken.sol";
 import "./libraries/IterableMapping.sol";
 
 contract ShibuDividendTracker is Ownable, DividendPayingToken {
-    using SafeMath for uint256;
-    using SafeMathInt for int256;
     using IterableMapping for IterableMapping.Map;
 
     IterableMapping.Map private tokenHoldersMap;
@@ -23,6 +21,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
 
     event ExcludeFromDividends(address indexed account);
     event ClaimWaitUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event MinimumTokenBalanceForDividends(uint256 indexed newValue, uint256 indexed oldValue);
 
     event Claim(address indexed account, uint256 amount, bool indexed automatic);
 
@@ -42,7 +41,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
     function excludeFromDividends(address account, bool value) external onlyOwner {
         require(excludedFromDividends[account] != value);
         excludedFromDividends[account] = value;
-        if(value == true){
+        if(value){
             _setBalance(account, 0);
             tokenHoldersMap.remove(account);
         }
@@ -60,6 +59,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
     }
 
     function setMinimumBalanceForRewards(uint256 amount) external onlyOwner{
+        emit MinimumTokenBalanceForDividends(minimumTokenBalanceForDividends, amount);
         minimumTokenBalanceForDividends = amount;
     }
 
@@ -89,15 +89,15 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
 
         if(index >= 0) {
             if(uint256(index) > lastProcessedIndex) {
-                iterationsUntilProcessed = index.sub(int256(lastProcessedIndex));
+                iterationsUntilProcessed = index - int256(lastProcessedIndex);
             }
             else {
                 uint256 processesUntilEndOfArray = tokenHoldersMap.keys.length > lastProcessedIndex ?
-                tokenHoldersMap.keys.length.sub(lastProcessedIndex) :
+                tokenHoldersMap.keys.length - lastProcessedIndex :
                 0;
 
 
-                iterationsUntilProcessed = index.add(int256(processesUntilEndOfArray));
+                iterationsUntilProcessed = index + int256(processesUntilEndOfArray);
             }
         }
 
@@ -108,16 +108,16 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
         lastClaimTime = lastClaimTimes[account];
 
         nextClaimTime = lastClaimTime > 0 ?
-        lastClaimTime.add(claimWait) :
+        lastClaimTime + claimWait :
         0;
 
         secondsUntilAutoClaimAvailable = nextClaimTime > block.timestamp ?
-        nextClaimTime.sub(block.timestamp) :
+        nextClaimTime - block.timestamp :
         0;
     }
 
     function getAccountAtIndex(uint256 index)
-    public view returns (
+    external view returns (
         address,
         int256,
         int256,
@@ -140,7 +140,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
             return false;
         }
 
-        return block.timestamp.sub(lastClaimTime) >= claimWait;
+        return (block.timestamp - lastClaimTime) >= claimWait;
     }
 
     function setBalance(address payable account, uint256 newBalance) external onlyOwner {
@@ -160,7 +160,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
         processAccount(account, true);
     }
 
-    function process(uint256 gas) public returns (uint256, uint256, uint256) {
+    function process(uint256 gas) external returns (uint256, uint256, uint256) {
         uint256 numberOfTokenHolders = tokenHoldersMap.keys.length;
 
         if(numberOfTokenHolders == 0) {
@@ -196,7 +196,7 @@ contract ShibuDividendTracker is Ownable, DividendPayingToken {
             uint256 newGasLeft = gasleft();
 
             if(gasLeft > newGasLeft) {
-                gasUsed = gasUsed.add(gasLeft.sub(newGasLeft));
+                gasUsed = gasUsed + (gasLeft - newGasLeft);
             }
 
             gasLeft = newGasLeft;
