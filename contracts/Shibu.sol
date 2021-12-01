@@ -57,12 +57,23 @@ contract Shibu is BEP20, Ownable {
         address indexed oldAddress
     );
 
-    event Updaterouter(address indexed newAddress, address indexed oldAddress);
-
+    event UpdateRouter(address indexed newAddress, address indexed oldAddress);
     event ExcludeFromFees(address indexed account, bool isExcluded);
     event ExcludeMultipleAccountsFromFees(address[] accounts, bool isExcluded);
-
     event SetAutomatedMarketMakerPair(address indexed pair, bool indexed value);
+    event BUSDRewardsFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event CharityFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event LiquidityFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event AutoBoostFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event BurnFeeUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event SwapTokensAtAmountUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event MaxWalletBalanceUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event MaxTxAmountUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event AutoBoostThresholdUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event SwapEnabledUpdated(bool newValue, bool oldValue);
+    event AutoBoostEnabledUpdated(bool newValue, bool oldValue);
+    event MinBalanceForRewardsUpdated(uint256 indexed newValue, uint256 indexed oldValue);
+    event BlackListAccountAdded(address indexed account, bool isExcluded);
 
     event GasForProcessingUpdated(
         uint256 indexed newValue,
@@ -163,7 +174,7 @@ contract Shibu is BEP20, Ownable {
             newAddress != address(router),
             "SHIBU: The router already has that address"
         );
-        emit Updaterouter(newAddress, address(router));
+        emit UpdateRouter(newAddress, address(router));
         router = IRouter(newAddress);
     }
 
@@ -334,11 +345,21 @@ contract Shibu is BEP20, Ownable {
             _BUSDFee + _charityFee + _liqFee + _autoBoostFee <= 350,
             "Fees must be <= 35%"
         );
+        emit BUSDRewardsFeeUpdated(_BUSDFee, BUSDRewardsFee);
         BUSDRewardsFee = _BUSDFee;
+
+        emit CharityFeeUpdated(_charityFee, charityFee);
         charityFee = _charityFee;
+
+        emit LiquidityFeeUpdated(_liqFee, liquidityFee);
         liquidityFee = _liqFee;
+
+        emit AutoBoostFeeUpdated(_autoBoostFee, autoBoost);
         autoBoost = _autoBoostFee;
+
+        emit BurnFeeUpdated(_burnFee, burnFee);
         burnFee = _burnFee;
+
         totalFees = BUSDRewardsFee + charityFee + liquidityFee + autoBoost;
     }
 
@@ -351,15 +372,27 @@ contract Shibu is BEP20, Ownable {
     }
 
     function setSwapTokensAtAmount(uint256 amount) external onlyOwner {
-        swapTokensAtAmount = amount * 10**decimals();
+        uint256 newValue = amount * 10**decimals();
+
+        emit SwapTokensAtAmountUpdated(newValue, swapTokensAtAmount);
+
+        swapTokensAtAmount = newValue;
     }
 
     function setMaxWalletBalance(uint256 amount) external onlyOwner {
-        maxWalletBalance = amount * 10**decimals();
+        uint256 newValue = amount * 10**decimals();
+
+        emit MaxWalletBalanceUpdated(newValue, maxWalletBalance);
+
+        maxWalletBalance = newValue;
     }
 
     function setMinTokensToGetrewards(uint256 amount) external onlyOwner {
-        dividendTracker.setMinimumBalanceForRewards(amount * 10**decimals());
+        uint256 newValue = amount * 10**decimals();
+        uint256 oldValue = dividendTracker.minimumTokenBalanceForDividends();
+
+        emit MinBalanceForRewardsUpdated(newValue, oldValue);
+        dividendTracker.setMinimumBalanceForRewards(newValue);
     }
 
     function setBlacklistAccount(address account, bool state)
@@ -367,24 +400,35 @@ contract Shibu is BEP20, Ownable {
     onlyOwner
     {
         require(_isBlacklisted[account] != state, "Value already set");
+        emit BlackListAccountAdded(account, state);
+
         _isBlacklisted[account] = state;
     }
 
     function setMaxTxAmount(uint256 amount) external onlyOwner {
         require(amount > 200_000 * 10**decimals(), "Amount must be > 200M");
-        maxTxAmount = amount * 10**decimals();
+
+        uint256 newValue = amount * 10**decimals();
+
+        emit MaxTxAmountUpdated(newValue, maxTxAmount);
+
+        maxTxAmount = newValue;
     }
 
     function setSwapEnabled(bool value) external onlyOwner {
+        emit SwapEnabledUpdated(value, swapEnabled);
         swapEnabled = value;
     }
 
     function setAutoBoostEnabled(bool value) external onlyOwner {
+        emit AutoBoostEnabledUpdated(value, autoBoostEnabled);
         autoBoostEnabled = value;
     }
 
     function setAutoBoostThreshold(uint256 amount) external onlyOwner {
-        autoBoostThreshold = amount * 10**18;
+        uint256 newValue = amount * 10**18;
+        emit AutoBoostThresholdUpdated(newValue, autoBoostThreshold);
+        autoBoostThreshold = newValue;
     }
 
     function rescueBNB(uint256 weiAmount) external onlyOwner {
