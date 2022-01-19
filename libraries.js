@@ -1,3 +1,3 @@
 module.exports = {
-    IterableMapping: "0x732b0674a08455dE464e5aA964B2D41A760C584D",
+    IterableMapping: "0xdF5c27A65A0c5025FCb03E4AEAC90F2c16cDB541",
 };

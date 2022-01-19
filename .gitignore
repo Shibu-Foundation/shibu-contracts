@@ -6,3 +6,7 @@ artifacts
 secrets.json
 .DS_Store
 contract-shibu-address.json
+.idea/.gitignore
+.idea/modules.xml
+.idea/vcs.xml
+.idea/shibu-contracts.iml

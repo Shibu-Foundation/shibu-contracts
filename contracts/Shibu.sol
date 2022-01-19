@@ -29,14 +29,14 @@ contract Shibu is BEP20, Ownable {
     uint256 public maxTxAmount = 25e11 * 10**decimals(); // 0.25% of total supply
 
     uint256 public BUSDRewardsFee = 25;
-    uint256 public charityFee = 10;
+    uint256 public charityFee = 15;
     uint256 public liquidityFee = 10;
-    uint256 public burnFee = 15;
+    uint256 public burnFee = 10;
     uint256 public autoBoost = 0;
     uint256 public totalFees = BUSDRewardsFee + charityFee + liquidityFee + autoBoost;
 
-    address public charityWallet = 0x6719B4EfA20b7cF5Dc0d5A1a0Bac600c68884Dfd;
-    address public liquidityWallet = 0x6719B4EfA20b7cF5Dc0d5A1a0Bac600c68884Dfd;
+    address public charityWallet = 0x7a230A4B0adDe94fd416a2a74502e9635dCCc666;
+    address public liquidityWallet = 0xCcF202357911bd81CCa842977301a4c93C8884fF;
 
     // use by default 500,000 gas to process auto-claiming dividends
     uint256 public gasForProcessing = 500000;
